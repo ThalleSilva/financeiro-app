@@ -5,17 +5,15 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_sqlalchemy import SQLAlchemy
 from models import Usuario, Gasto, ReservaMovimentacao, Parcelamento, ContaBancaria # Importe todos os modelos
-from db import db
+from db import db, init_app
 import hashlib
 
 app = Flask(__name__)
 app.secret_key = 'finanaças' # Certifique-se de que esta chave seja forte e secreta!
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///financeiro.db' # Mudei para financeiro.db
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Esta linha estava duplicada e apontando para database.db. Removi a duplicação.
-# app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///database.db"
-db.init_app(app)
+
+init_app(app)
 
 
 login_manager = LoginManager(app)
@@ -606,7 +604,5 @@ def excluir_fatura(fatura_id):
 
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
     app.run(debug=True, use_reloader=False, port=9999)
     
