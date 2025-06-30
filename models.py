@@ -40,7 +40,6 @@ class Parcelamento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(100), nullable=False)
     valor_total = db.Column(db.Float, nullable=False)
-    valor_parcela = db.Column(db.Float, nullable=False)
     num_parcelas = db.Column(db.Integer, nullable=False)
     parcelas_pagas = db.Column(db.Integer, default=0, nullable=False)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False) # Novo campo
