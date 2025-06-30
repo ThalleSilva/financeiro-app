@@ -303,11 +303,12 @@ def home():
 
 
     for p in todos_parcelamentos:
+        valor_parcela = p.valor_total/p.num_parcelas
         if p.parcelas_pagas < p.num_parcelas:
-            valor_todas_parcelas += p.valor_parcela
+            valor_todas_parcelas += valor_parcela
 
     for p in todos_parcelamentos:
-        restante = (p.num_parcelas - p.parcelas_pagas) * p.valor_parcela
+        restante = (p.num_parcelas - p.parcelas_pagas) * (p.valor_total/p.num_parcelas)
         total_restante += restante
 
 
@@ -528,19 +529,16 @@ def parcelamentos():
         if acao == 'adicionarParcelamento':
             nome = request.form.get('nome_parcelamento')
             valor_total_str = request.form.get('valor_total')
-            valor_parcela_str = request.form.get('valor_parcela')
             numero_parcelas_str = request.form.get('numero_parcelas')
 
-            if nome and valor_total_str and valor_parcela_str and numero_parcelas_str:
+            if nome and valor_total_str and numero_parcelas_str:
                 try:
                     valor_total = float(valor_total_str)
-                    valor_parcela = float(valor_parcela_str)
                     numero_parcelas = int(numero_parcelas_str)
 
                     novo_parcelamento = Parcelamento(
                         nome=nome,
                         valor_total=valor_total,
-                        valor_parcela=valor_parcela,
                         num_parcelas=numero_parcelas,
                         parcelas_pagas=0,
                         usuario_id=current_user.id # Atribui ao usuário logado
