@@ -3,3 +3,4 @@ Flask-Mail
 Flask-Login
 Flask-SQLAlchemy
 itsdangerous
+psycopg2-binary
