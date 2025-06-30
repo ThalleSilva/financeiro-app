@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Adicionar/Editar Gastos - Controle Financeiro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="titulo">Adicionar Novo Gasto ou Fatura</h1>
+
+
+        <div class="card">
+            <h2>{% if gasto_a_editar %}Editar Gasto{% else %}Adicionar Gasto{% endif %}</h2>
+            <form action="" method="post" class="form-gasto">
+                <input type="hidden" name="acao" value="salvarGasto">
+                {% if gasto_a_editar %}
+                <input type="hidden" name="gasto_id" value="{{ gasto_a_editar.id }}">
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="descricao">Descrição:</label>
+                    <input type="text" id="descricao" name="descricao" value="{% if gasto_a_editar %}{{ gasto_a_editar.descricao }}{% endif %}" required>
+                </div>
+                <div class="form-group">
+                    <label for="valor">Valor:</label>
+                    <input type="number" id="valor" name="valor" step="0.01" value="{% if gasto_a_editar %}{{ gasto_a_editar.valor }}{% endif %}" required>
+                </div>
+                <div class="form-group">
+                    <label for="data">Data do Gasto:</label>
+                    <input type="date" id="data" name="data" value="{% if gasto_a_editar %}{{ gasto_a_editar.data_formatada_html }}{% else %}{{ data_hoje }}{% endif %}" required>
+                </div>
+                <div class="form-group">
+                    <label for="cartao">Cartão/Origem:</label>
+                    <select id="cartao" name="cartao" required>
+                        <option value="">Selecione ou adicione uma origem</option>
+                        {% for cartao_disp in cartoes %}
+                        <option value="{{ cartao_disp }}" {% if gasto_a_editar and gasto_a_editar.cartao == cartao_disp %}selected{% endif %}>{{ cartao_disp }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="button-group">
+                    <button type="submit">{% if gasto_a_editar %}Salvar Edição{% else %}Adicionar Gasto{% endif %}</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Faturas Cadastradas</h2>
+            <ul class="lista-faturas-excluir">
+                {% for fatura in faturas_obj %}
+                    {% if fatura.nome != 'Dinheiro' and fatura.nome != 'Outro' %}
+                        <li>
+                            {{ fatura.nome }}
+                            <form action="{{ url_for('excluir_fatura', fatura_id=fatura.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir a fatura {{ fatura.nome }}? Os gastos associados a ela serão marcados como \'Fatura Excluída\'.');">
+                                <button type="submit" class="button-excluir">Excluir</button>
+                            </form>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                {% if num_faturas_gerenciaveis_backend == 0 %}
+                <li class="nenhum-registro">Nenhuma fatura cadastrada ainda.</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <div class="card card-add-fatura">
+            <h2>Adicionar Nova Fatura (Cartão/Conta)</h2>
+            <form action="" method="post" class="form-add-cartao">
+                <input type="hidden" name="acao" value="adicionarCartao">
+                <div class="form-group">
+                    <label for="novo_cartao_nome">Nome da Fatura/Cartão (ex: Nubank, Inter):</label>
+                    <input type="text" id="novo_cartao_nome" name="novo_cartao_nome" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit">Adicionar Fatura</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card gastos-registrados">
+            <h2>Últimos Gastos Registrados</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Descrição</th>
+                        <th>Valor (R$)</th>
+                        <th>Data</th>
+                        <th>Cartão/Origem</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in gastos %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ gasto.descricao }}</td>
+                        <td>R$ {{ "{:,.2f}".format(gasto.valor).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                        <td>{{ gasto.data }}</td>
+                        <td>{{ gasto.cartao }}</td>
+                        <td>
+                            <a href="{{ url_for('adicionar_gastos', gasto_id=gasto.id) }}" class="button-editar">Editar</a>
+                            <form action="{{ url_for('excluir_gasto', gasto_id=gasto.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir este gasto?');">
+                                <button type="submit" class="button-excluir">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="nenhum-registro">Nenhum gasto registrado ainda.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="botao"> 
+            <a href="{{ url_for('home') }}" class="button-link">Voltar para o Início</a>
+        </div>
+    </div>
+</body>
+</html>

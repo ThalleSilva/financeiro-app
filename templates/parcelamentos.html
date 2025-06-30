@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificar Parcelamentos - Controle Financeiro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1 class="titulo">Gerenciar Parcelamentos</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <h2>Adicionar Novo Parcelamento</h2>
+            <form action="" method="post" class="form-parcelamento">
+                <input type="hidden" name="acao" value="adicionarParcelamento">
+                <div class="form-group">
+                    <label for="nome_parcelamento">Nome do Parcelamento:</label>
+                    <input type="text" id="nome_parcelamento" name="nome_parcelamento" required>
+                </div>
+                <div class="form-group">
+                    <label for="valor_total">Valor Total:</label>
+                    <input type="number" id="valor_total" name="valor_total" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="valor_parcela">Valor da Parcela:</label>
+                    <input type="number" id="valor_parcela" name="valor_parcela" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="numero_parcelas">Número de Parcelas:</label>
+                    <input type="number" id="numero_parcelas" name="numero_parcelas" min="1" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit">Adicionar Parcelamento</button>
+                </div>
+            </form>
+        </div>
+
+
+        <div class="movimentacoes">
+            <h2>Meus Parcelamentos</h2>
+            <div class="lista-parcelamentos">
+                {% for p in parcelamentos %}
+                <div class="parcelamento-item">
+                    <h3>{{ p.nome }}</h3>
+                    <p>Valor Total: R$ {{ "{:,.2f}".format(p.valor_total).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+                    <p>Valor da Parcela: R$ {{ "{:,.2f}".format(p.valor_parcela).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+                    <p>Valor restante: R$ {{"{:,.2f}".format((p.num_parcelas - p.parcelas_pagas)*p.valor_parcela)}}</p>
+                    <p>Total de Parcelas: {{ p.num_parcelas }}</p>
+                    <div class="parcelas-pagas-controls">
+                        <label for="parcelas_pagas_{{ p.id }}">Parcelas Pagas:</label>
+                        <select id="parcelas_pagas_{{ p.id }}" name="parcelas_pagas" data-parcelamento-id="{{ p.id }}">
+                            {% for i in range(p.num_parcelas + 1) %}
+                            <option value="{{ i }}" {% if i == p.parcelas_pagas %}selected{% endif %}>{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="status-parcelamento"> (Faltam {{ p.num_parcelas - p.parcelas_pagas }} parcelas)</span>
+                    </div>
+                    <form action="{{ url_for('excluir_parcelamento', parcelamento_id=p.id) }}" method="post" style="display:block; margin-top: 10px;" onsubmit="return confirm('Tem certeza que deseja excluir este parcelamento?');">
+                        <button type="submit" class="button-excluir">Excluir Parcelamento</button>
+                    </form>
+                </div>
+                {% else %}
+                <p class="nenhum-registro">Nenhum parcelamento registrado ainda.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="botao"> 
+            <a href="{{ url_for('home') }}" class="button-link">Voltar para o Início</a>
+        </div>
+    </div>
+
+<script>
+    $(document).ready(function() {
+        $('select[name="parcelas_pagas"]').on('change', function() {
+            var parcelamentoId = $(this).data('parcelamento-id');
+            var novasParcelasPagas = $(this).val();
+            var selectElement = $(this);
+            var parcelamentoItem = selectElement.closest('.parcelamento-item');
+
+            $.ajax({
+                url: '{{ url_for("parcelamentos") }}',
+                method: 'POST',
+                data: {
+                    acao: 'atualizarParcelasPagas',
+                    parcelamento_id: parcelamentoId,
+                    parcelas_pagas: novasParcelasPagas
+                },
+                success: function(response) {
+                    // --- Início da Correção ---
+
+                    // 1. Obter os textos do HTML
+                    var numTotalParcelasText = parcelamentoItem.find('p:contains("Total de Parcelas:")').text();
+                    var valorParcelaText = parcelamentoItem.find('p:contains("Valor da Parcela:")').text(); // Ex: "Valor da Parcela: R$ 120,00"
+
+                    // 2. Extrair e "limpar" os números para o cálculo
+                    var numTotalParcelas = parseInt(numTotalParcelasText.match(/\d+/)[0]);
+                    
+                    // Lógica robusta para extrair o valor da parcela
+                    var valorParcelaString = valorParcelaText.split('R$')[1].trim(); // Pega "120,00" ou "1.200,00"
+                    var valorParcelaLimpo = valorParcelaString.replace(/\./g, '').replace(',', '.'); // Remove TODOS os pontos e troca a vírgula por ponto
+                    var valorParcela = parseFloat(valorParcelaLimpo);
+
+                    // VERIFICAÇÃO: Se ainda assim der erro, pare aqui para não mostrar NaN
+                    if (isNaN(valorParcela)) {
+                        console.error("Não foi possível converter o valor da parcela. Valor lido:", valorParcelaText);
+                        alert("Ocorreu um erro ao calcular o valor restante.");
+                        return; // Interrompe a execução
+                    }
+
+                    // 3. Calcular os novos valores
+                    var faltam = numTotalParcelas - parseInt(novasParcelasPagas);
+                    var novoValorRestante = faltam * valorParcela;
+
+                    // 4. Atualizar a interface do usuário
+                    selectElement.next('.status-parcelamento').text(' (Faltam ' + faltam + ' parcelas)');
+                    
+                    var valorRestanteElement = parcelamentoItem.find('p:contains("Valor restante:")');
+                    var valorFormatado = novoValorRestante.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    valorRestanteElement.text('Valor restante: ' + valorFormatado);
+
+                    console.log("Parcelas e valor restante atualizados com sucesso!");
+                    
+                    // --- Fim da Correção ---
+                },
+                error: function(xhr, status, error) {
+                    console.error("Erro ao atualizar parcelas pagas:", error);
+                    alert("Erro ao atualizar parcelas. Tente novamente.");
+                }
+            });
+        });
+    });
+</script>
+</body>
+</html>

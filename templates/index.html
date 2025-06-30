@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Controle Financeiro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container"> <h1 class="titulo">Controle Financeiro</h1>
+
+        <div class="cards">
+            <div class="card">
+                <h2>Parcelamentos</h2>
+                <p class="parcelamentos-ativos">{{ parcelamentos_ativos }} ativos</p>
+                <p> Total restante: {{"{:,.2f}".format(total_restante).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+            </div>
+
+            <div class="card">
+                <h2>Faturas</h2>
+                <div class="faturas">
+                    {% for nome_cartao, valor_fatura in faturas.items() %}
+                    <div>
+                        <p>{{ nome_cartao }}</p>
+                        <p>R$ {{ "{:,.2f}".format(valor_fatura).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+                    </div>
+                    {% else %}
+                    <div><p>Nenhuma fatura registrada.</p></div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Gasto no Mês</h2>
+                <p class="gasto-mes">R$ {{ "{:,.2f}".format(gasto_mes).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+                <p>Valores Fixos: {{"{:,.2f}".format(valor_todas_parcelas).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+            </div>
+        </div>
+
+        <div class="reserva">
+            <h2>Dinheiro Guardado</h2>
+            <p class="dinheiro-guardado">R$ {{ "{:,.2f}".format(dinheiro_guardado).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+        </div>
+
+        <div class="movimentacoes">
+            <h2>Últimos Gastos</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Descrição</th>
+                        <th>Valor</th>
+                        <th>Cartão/Origem</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for gasto in movimentacoes_gastos %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ gasto.descricao }}</td>
+                        <td>R$ {{ "{:,.2f}".format(gasto.valor).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                        <td>{{ gasto.cartao }}</td>
+                        <td>{{ gasto.data }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5">Nenhum gasto registrado ainda.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="main-buttons-group">
+    <!-- Linha 1 -->
+    <form action="" method="post">
+        <button name="acao" value="addGasto" class="button-action">Editar/Adicionar Gastos</button>
+        <button name="acao" value="addReserva" class="button-action">Adicionar Reserva</button>
+        <button name="acao" value="parcelamentos" class="button-action">Verificar Parcelamentos</button>
+    </form>
+
+    <!-- Linha 2 -->
+    <div style="display: flex; justify-content: center; gap: 15px; margin-top: 15px;">
+        <a href="{{ url_for('logout') }}" class="button-action">Deslogar</a>
+        <a href="{{ url_for('novasenha') }}" class="button-action">Alterar senha</a>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Reserva - Controle Financeiro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="titulo">Gerenciar Reserva</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="flashes">
+            {% for category, message in messages %}
+            <li class="{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <div class="card saldo-reserva-card">
+            <h2>Saldo Atual da Reserva</h2>
+            <p class="dinheiro-guardado">R$ {{ "{:,.2f}".format(dinheiro_guardado).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+        </div>
+
+        <div class="card">
+            <h2>Adicionar/Subtrair Valor</h2>
+            <form action="" method="post" class="form-reserva">
+                <div class="form-group">
+                    <label for="valor">Valor:</label>
+                    <input type="number" id="valor" name="valor" step="0.01" required>
+                </div>
+                <div class="button-group">
+                    <button type="submit" name="acao" value="adicionarReserva">Adicionar</button>
+                    <button type="submit" name="acao" value="subtrairReserva">Subtrair</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="movimentacoes">
+            <h2>Últimas Movimentações da Reserva</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th>Data</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mov in movimentacoes %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ mov.tipo }}</td>
+                        <td>R$ {{ "{:,.2f}".format(mov.valor).replace(",", "X").replace(".", ",").replace("X", ".") }}</td>
+                        <td>{{ mov.data }}</td>
+                        <td>
+                            <form action="{{ url_for('excluir_reserva_mov', mov_id=mov.id) }}" method="post" style="display:inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta movimentação?');">
+                                <button type="submit" class="button-excluir">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="nenhum-registro">Nenhuma movimentação na reserva ainda.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="botao"> 
+            <a href="{{ url_for('home') }}" class="button-link">Voltar para o Início</a>
+        </div>
+    </div>
+</body>
+</html>
