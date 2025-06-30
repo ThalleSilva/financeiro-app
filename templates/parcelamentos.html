@@ -33,10 +33,6 @@
                     <input type="number" id="valor_total" name="valor_total" step="0.01" required>
                 </div>
                 <div class="form-group">
-                    <label for="valor_parcela">Valor da Parcela:</label>
-                    <input type="number" id="valor_parcela" name="valor_parcela" step="0.01" required>
-                </div>
-                <div class="form-group">
                     <label for="numero_parcelas">Número de Parcelas:</label>
                     <input type="number" id="numero_parcelas" name="numero_parcelas" min="1" required>
                 </div>
@@ -54,8 +50,8 @@
                 <div class="parcelamento-item">
                     <h3>{{ p.nome }}</h3>
                     <p>Valor Total: R$ {{ "{:,.2f}".format(p.valor_total).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
-                    <p>Valor da Parcela: R$ {{ "{:,.2f}".format(p.valor_parcela).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
-                    <p>Valor restante: R$ {{"{:,.2f}".format((p.num_parcelas - p.parcelas_pagas)*p.valor_parcela)}}</p>
+                    <p>Valor da Parcela: R$ {{ "{:,.2f}".format(p.valor_total/p.num_parcelas).replace(",", "X").replace(".", ",").replace("X", ".") }}</p>
+                    <p>Valor restante: R$ {{"{:,.2f}".format((p.num_parcelas - p.parcelas_pagas)*(p.valor_total/p.num_parcelas))}}</p>
                     <p>Total de Parcelas: {{ p.num_parcelas }}</p>
                     <div class="parcelas-pagas-controls">
                         <label for="parcelas_pagas_{{ p.id }}">Parcelas Pagas:</label>
