@@ -299,14 +299,14 @@ def home():
 
     total_restante = 0
 
+
+
+
     valor_todas_parcelas = 0
-
-
     for p in todos_parcelamentos:
-        valor_parcela = p.valor_total/p.num_parcelas
-        if p.parcelas_pagas < p.num_parcelas:
+        if p.usuario_id == current_user.id and p.parcelas_pagas < p.num_parcelas:
+            valor_parcela = p.valor_total / p.num_parcelas
             valor_todas_parcelas += valor_parcela
-
     for p in todos_parcelamentos:
         restante = (p.num_parcelas - p.parcelas_pagas) * (p.valor_total/p.num_parcelas)
         total_restante += restante
