@@ -295,7 +295,7 @@ def home():
     # Filtra gastos pelo usuário atual
     movimentacoes_gastos = Gasto.query.filter_by(usuario_id=current_user.id).order_by(Gasto.id.desc()).limit(5).all() 
 
-    todos_parcelamentos = Parcelamento.query.all()
+    todos_parcelamentos = Parcelamento.query.filter_by(usuario_id=current_user.id).all()
 
     total_restante = 0
 
